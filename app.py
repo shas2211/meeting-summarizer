@@ -5,11 +5,9 @@ import os
 from groq import Groq
 
 app = Flask(__name__)
-app.secret_key = "super-secret"  # later replace with env var if hosting
-
+app.secret_key = "super-secret" 
 # Initialize Whisper model
-model = whisper.load_model("tiny")  # small is good balance speed/accuracy
-
+model = whisper.load_model("tiny")  
 # Initialize Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -34,10 +32,10 @@ def upload():
         tmp_path = tmp.name
 
     try:
-        # 1️⃣ Whisper transcription
+       
         transcript = model.transcribe(tmp_path)["text"]
 
-        # 2️⃣ Groq summarization
+        
         prompt = f"Summarize this meeting transcript:\n{transcript}\nReturn SUMMARY, DECISIONS, and ACTION ITEMS."
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
