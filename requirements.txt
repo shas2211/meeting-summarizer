@@ -1,7 +1,7 @@
 Flask==2.3.3
-whisper==1.1.10   # latest stable PyPI version
+whisper==1.1.10
 pydub==0.25.1
-torch==2.2.0
-torchaudio==2.2.0
+torch==2.9.0
+torchaudio==2.9.0
 numpy==1.25.2
 groq==0.2.19
