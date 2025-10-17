@@ -1,16 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
-import whisper
-import tempfile
 import os
 from groq import Groq
+from flask import Flask, request, render_template, redirect, url_for, flash
+import tempfile
 
 app = Flask(__name__)
-app.secret_key = "super-secret"  
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super-secret")
 
-# Initialize Whisper model
-model = whisper.load_model("tiny")  
-
-# Initialize Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 @app.route("/", methods=["GET"])
@@ -28,31 +23,34 @@ def upload():
         flash("No selected file")
         return redirect(url_for("index"))
 
-    # Save temp
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         file.save(tmp.name)
         tmp_path = tmp.name
 
     try:
-      
-        transcript = model.transcribe(tmp_path)["text"]
+        # Groq transcription
+        with open(tmp_path, "rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                model="whisper-large-v3-turbo",
+                file=(file.filename, audio_file.read()),
+                language="en",
+                response_format="verbose_json"
+            )
+            transcript = response.text
 
-        
+        # Groq summarization
         prompt = f"Summarize this meeting transcript:\n{transcript}\nReturn SUMMARY, DECISIONS, and ACTION ITEMS."
-        response = client.chat.completions.create(
+        summary_resp = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a meeting summarizer."},
                 {"role": "user", "content": prompt}
             ],
         )
-        summary_output = response.choices[0].message.content
+        summary_output = summary_resp.choices[0].message.content
 
         return render_template("result.html", transcript=transcript, summary=summary_output, filename=file.filename)
 
-    except Exception as e:
-        flash(f"Error processing file: {e}")
-        return redirect(url_for("index"))
     finally:
         try:
             os.remove(tmp_path)
@@ -60,4 +58,4 @@ def upload():
             pass
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
