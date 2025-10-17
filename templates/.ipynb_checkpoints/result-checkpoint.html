@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Results - {{ filename }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+<h1>Transcript & Summary</h1>
+<a href="{{ url_for('index') }}">← Upload another file</a>
+
+<h2>Transcript</h2>
+<pre>{{ transcript }}</pre>
+
+<h2>Summary / Decisions / Action Items</h2>
+<pre>{{ summary }}</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Ignore virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Audio chunks (if any temporary)
+chunk_*.wav
