@@ -1,15 +1,6 @@
 # meeting-summarizer
 
-meeting-summarizer/
-│
-├── app.py
-├── requirements.txt
-├── templates/
-│   ├── index.html
-│   └── result.html
-├── static/
-│   └── style.css
-└── README.md
+<img width="360" height="343" alt="image" src="https://github.com/user-attachments/assets/a02ebed7-a9ce-4d51-bcb8-083a23d6e3e9" />
 
 
 
