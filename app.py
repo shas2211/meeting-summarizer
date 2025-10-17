@@ -1,61 +1,45 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
-import whisper
-import tempfile
-import os
+from flask import Flask, request, render_template
+from pydub import AudioSegment
 from groq import Groq
+from gensim.summarization import summarize
+import os
 
 app = Flask(__name__)
-app.secret_key = "super-secret" 
-# Initialize Whisper model
-model = whisper.load_model("tiny")  
+
 # Initialize Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-@app.route("/", methods=["GET"])
-def index():
-    return render_template("index.html")
+def transcribe_audio(file_path):
+    # Send audio file to Groq for transcription
+    with open(file_path, "rb") as f:
+        response = client.transcribe(file=f)
+    return response.text
 
-@app.route("/upload", methods=["POST"])
-def upload():
-    if "audio_file" not in request.files:
-        flash("No file uploaded")
-        return redirect(url_for("index"))
-
-    file = request.files["audio_file"]
-    if file.filename == "":
-        flash("No selected file")
-        return redirect(url_for("index"))
-
-    # Save temp
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        file.save(tmp.name)
-        tmp_path = tmp.name
-
+def summarize_text(text):
     try:
-       
-        transcript = model.transcribe(tmp_path)["text"]
+        return summarize(text, word_count=100)
+    except:
+        return text  # fallback if text too short
 
-        
-        prompt = f"Summarize this meeting transcript:\n{transcript}\nReturn SUMMARY, DECISIONS, and ACTION ITEMS."
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are a meeting summarizer."},
-                {"role": "user", "content": prompt}
-            ],
-        )
-        summary_output = response.choices[0].message.content
+@app.route("/", methods=["GET", "POST"])
+def index():
+    transcript = ""
+    summary = ""
+    if request.method == "POST":
+        audio = request.files["audio_file"]
+        audio_path = f"temp_{audio.filename}"
+        audio.save(audio_path)
 
-        return render_template("result.html", transcript=transcript, summary=summary_output, filename=file.filename)
+        # Convert to WAV if needed
+        if not audio.filename.endswith(".wav"):
+            sound = AudioSegment.from_file(audio_path)
+            audio_path = audio_path.rsplit(".", 1)[0] + ".wav"
+            sound.export(audio_path, format="wav")
 
-    except Exception as e:
-        flash(f"Error processing file: {e}")
-        return redirect(url_for("index"))
-    finally:
-        try:
-            os.remove(tmp_path)
-        except:
-            pass
+        transcript = transcribe_audio(audio_path)
+        summary = summarize_text(transcript)
+
+    return render_template("index.html", transcript=transcript, summary=summary)
 
 if __name__ == "__main__":
     app.run(debug=True)
