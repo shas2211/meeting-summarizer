@@ -2,19 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Results - {{ filename }}</title>
+<title>Meeting Summary Result</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
-<h1>Transcript & Summary</h1>
-<a href="{{ url_for('index') }}">← Upload another file</a>
-
-<h2>Transcript</h2>
+<h1>Transcript ({{ filename }})</h1>
 <pre>{{ transcript }}</pre>
 
-<h2>Summary / Decisions / Action Items</h2>
+<h1>Summary</h1>
 <pre>{{ summary }}</pre>
+
+<a href="{{ url_for('index') }}">Upload Another File</a>
 </div>
 </body>
 </html>
