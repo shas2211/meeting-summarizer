@@ -1,0 +1,7 @@
+Flask==2.3.3
+whisper==20231027
+pydub==0.25.1
+torch==2.2.0
+torchaudio==2.2.0
+numpy==1.25.2
+groq==0.2.19
